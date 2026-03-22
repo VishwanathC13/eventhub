@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "http://34.68.168.47:8080/$1"
+    },
+    {
+      "source": "/ws/(.*)",
+      "destination": "http://34.68.168.47:8080/ws/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
