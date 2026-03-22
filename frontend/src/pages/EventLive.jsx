@@ -108,11 +108,20 @@ function toEmbedConfig(value) {
 export default function EventLive() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= 1024 : false
+  )
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('info')
   const [sidePanelTab, setSidePanelTab] = useState('chat')
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 1024)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -237,10 +246,10 @@ export default function EventLive() {
   const streamConfig = toEmbedConfig(event?.streamUrl)
 
   return (
-    <div style={{ height:'calc(100vh - 60px)', display:'flex', flexDirection:'column' }}>
+    <div style={{ height: isMobile ? 'auto' : 'calc(100vh - 60px)', minHeight:'calc(100vh - 60px)', display:'flex', flexDirection:'column' }}>
 
       {/* Top bar */}
-      <div style={{ background:'var(--bg2)', borderBottom:'1px solid var(--border)', padding:'10px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+      <div style={{ background:'var(--bg2)', borderBottom:'1px solid var(--border)', padding: isMobile ? '10px 12px' : '10px 24px', display:'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent:'space-between', flexShrink:0, gap:'10px', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
         <div>
           <div style={{ fontFamily:'var(--font-display)', fontSize:'15px', fontWeight:'600' }}>{event.title}</div>
           <div style={{ fontSize:'12px', color:'var(--text2)', marginTop:'1px' }}>
@@ -258,11 +267,21 @@ export default function EventLive() {
       </div>
 
       {/* Main layout */}
-      <div style={{ flex:1, display:'grid', gridTemplateColumns:'1fr 360px', overflow:'hidden' }}>
+      <div style={{ flex:1, display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 360px', gridTemplateRows: isMobile ? 'auto auto' : '1fr', overflow: isMobile ? 'visible' : 'hidden' }}>
 
         {/* Stream area */}
-        <div style={{ display:'flex', flexDirection:'column', overflow:'hidden' }}>
-          <div style={{ flex:1, background:'#000', display:'flex', alignItems:'center', justifyContent:'center', position:'relative' }}>
+        <div style={{ display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
+          <div style={{
+            flex: isMobile ? 'none' : 1,
+            width:'100%',
+            background:'#000',
+            display:'flex',
+            alignItems:'center',
+            justifyContent:'center',
+            position:'relative',
+            aspectRatio: isMobile ? '16 / 9' : 'auto',
+            minHeight: isMobile ? '240px' : '0'
+          }}>
             {streamConfig.src ? (
               streamConfig.type === 'video' || streamConfig.type === 'hls' ? (
                 <div style={{ width:'100%', height:'100%', display:'flex', flexDirection:'column', justifyContent:'center', background:'#000' }}>
@@ -303,7 +322,7 @@ export default function EventLive() {
                 href={streamConfig.original}
                 target="_blank"
                 rel="noreferrer"
-                style={{ position:'absolute', right:'12px', bottom:'12px', background:'rgba(0,0,0,0.5)', color:'#fff', fontSize:'12px', padding:'6px 10px', borderRadius:'8px' }}
+                style={{ position:'absolute', right:'12px', bottom:'12px', background:'rgba(0,0,0,0.5)', color:'#fff', fontSize:'12px', padding:'6px 10px', borderRadius:'8px', maxWidth:'80%' }}
               >
                 Open stream in new tab
               </a>
@@ -312,12 +331,12 @@ export default function EventLive() {
 
           {/* Tabs under stream */}
           <div style={{ background:'var(--bg2)', borderTop:'1px solid var(--border)', flexShrink:0 }}>
-            <div style={{ display:'flex', padding:'0 16px', borderBottom:'1px solid var(--border)' }}>
+            <div style={{ display:'flex', padding: isMobile ? '0 8px' : '0 16px', borderBottom:'1px solid var(--border)' }}>
               <button style={tabStyle('info')} onClick={() => setActiveTab('info')}>Info</button>
               <button style={tabStyle('schedule')} onClick={() => setActiveTab('schedule')}>Schedule</button>
             </div>
 
-            <div style={{ padding:'16px', maxHeight:'160px', overflowY:'auto' }}>
+            <div style={{ padding: isMobile ? '12px' : '16px', maxHeight: isMobile ? '220px' : '160px', overflowY:'auto' }}>
               {activeTab === 'info' && (
                 <div className="fade-in">
                   <p style={{ fontSize:'13px', color:'var(--text2)', lineHeight:'1.7' }}>{event.description || 'No description provided.'}</p>
@@ -347,7 +366,7 @@ export default function EventLive() {
         </div>
 
         {/* Chat sidebar */}
-        <div style={{ borderLeft:'1px solid var(--border)', background:'var(--bg2)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <div style={{ borderLeft: isMobile ? 'none' : '1px solid var(--border)', borderTop: isMobile ? '1px solid var(--border)' : 'none', background:'var(--bg2)', display:'flex', flexDirection:'column', overflow:'hidden', minHeight: isMobile ? '55vh' : '0' }}>
           <div style={{ display:'flex', borderBottom:'1px solid var(--border)', flexShrink:0 }}>
             <button style={sideTabStyle('chat')} onClick={() => setSidePanelTab('chat')}>Chat</button>
             <button style={sideTabStyle('slido')} onClick={() => setSidePanelTab('slido')}>Slido</button>

@@ -18,11 +18,26 @@ export default function AdminDashboard() {
   const [showEdit, setShowEdit] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [toast, setToast] = useState('')
+  const [isTablet, setIsTablet] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= 1024 : false
+  )
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= 700 : false
+  )
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500) }
 
   useEffect(() => {
     fetchAll()
+  }, [])
+
+  useEffect(() => {
+    const onResize = () => {
+      setIsTablet(window.innerWidth <= 1024)
+      setIsMobile(window.innerWidth <= 700)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   const fetchAll = async () => {
@@ -130,7 +145,7 @@ export default function AdminDashboard() {
   const setField = (k) => (e) => setCreateForm(f => ({ ...f, [k]: e.target.value }))
 
   const tabStyle = (t) => ({
-    padding:'9px 18px', fontSize:'13px', cursor:'pointer',
+    padding: isMobile ? '8px 12px' : '9px 18px', fontSize: isMobile ? '12px' : '13px', cursor:'pointer',
     borderBottom: tab === t ? '2px solid var(--accent)' : '2px solid transparent',
     color: tab === t ? 'var(--text)' : 'var(--text2)',
     background:'transparent', fontWeight: tab === t ? '500' : '400', transition:'all 0.15s',
@@ -139,15 +154,15 @@ export default function AdminDashboard() {
   const statusColor = { LIVE:'var(--danger)', UPCOMING:'var(--warn)', ENDED:'var(--text3)', CANCELLED:'var(--text3)' }
 
   return (
-    <div style={{ maxWidth:'1100px', margin:'0 auto', padding:'28px 24px' }}>
+    <div style={{ maxWidth:'1100px', margin:'0 auto', padding: isMobile ? '16px 12px' : '28px 24px' }}>
 
       {toast && (
-        <div style={{ position:'fixed', top:'76px', right:'24px', background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'12px 18px', fontSize:'13px', zIndex:200 }} className="fade-in">
+        <div style={{ position:'fixed', top: isMobile ? '10px' : '76px', right: isMobile ? '10px' : '24px', left: isMobile ? '10px' : 'auto', background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'12px 18px', fontSize:'13px', zIndex:200 }} className="fade-in">
           {toast}
         </div>
       )}
 
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom:'18px', gap:'10px', flexWrap:'wrap' }}>
         <div>
           <h1 style={{ fontSize:'24px', marginBottom:'4px' }}>Admin dashboard</h1>
           <p style={{ color:'var(--text2)', fontSize:'13px' }}>Manage events, attendees and analytics</p>
@@ -200,14 +215,14 @@ export default function AdminDashboard() {
       )}
 
       {/* Tabs */}
-      <div style={{ borderBottom:'1px solid var(--border)', marginBottom:'24px', display:'flex' }}>
+      <div style={{ borderBottom:'1px solid var(--border)', marginBottom:'18px', display:'flex', flexWrap:'wrap' }}>
         {TABS.map(t => <button key={t} style={tabStyle(t)} onClick={() => setTab(t)}>{t}</button>)}
       </div>
 
       {/* OVERVIEW */}
       {tab === 'Overview' && (
         <div className="fade-in">
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'12px', marginBottom:'24px' }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap:'12px', marginBottom:'18px' }}>
             <div className="stat-card"><div className="stat-label">Total events</div><div className="stat-value">{platformStats?.totalEvents ?? '—'}</div></div>
             <div className="stat-card"><div className="stat-label">Live now</div><div className="stat-value" style={{ color:'var(--danger)' }}>{platformStats?.liveEvents ?? '—'}</div></div>
             <div className="stat-card"><div className="stat-label">Registrations</div><div className="stat-value">{platformStats?.totalRegistrations ?? '—'}</div></div>
@@ -215,46 +230,48 @@ export default function AdminDashboard() {
           </div>
           <div className="card">
             <div className="card-title">Recent events</div>
-            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
-              <thead>
-                <tr style={{ borderBottom:'1px solid var(--border)' }}>
-                  {['Title','Start time','Attendees','Status','Actions'].map(h => (
-                    <th key={h} style={{ textAlign:'left', padding:'8px 10px', fontSize:'11px', color:'var(--text3)', fontWeight:'500', textTransform:'uppercase', letterSpacing:'0.05em' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {events.slice(0,6).map(ev => (
-                  <tr key={ev.id} style={{ borderBottom:'1px solid var(--border)' }}>
-                    <td style={{ padding:'10px' }}>{ev.title}</td>
-                    <td style={{ padding:'10px', color:'var(--text2)' }}>{format(new Date(ev.startTime), 'dd MMM · h:mm a')}</td>
-                    <td style={{ padding:'10px', color:'var(--text2)' }}>{ev.currentAttendees} / {ev.maxAttendees}</td>
-                    <td style={{ padding:'10px' }}>
-                      <span style={{ color: statusColor[ev.status], fontSize:'12px' }}>● {ev.status}</span>
-                    </td>
-                    <td style={{ padding:'10px' }}>
-                      <select
-                        value={ev.status}
-                        onChange={e => handleStatusChange(ev.id, e.target.value)}
-                        style={{ width:'auto', padding:'4px 8px', fontSize:'12px' }}
-                      >
-                        <option value="UPCOMING">UPCOMING</option>
-                        <option value="LIVE">LIVE</option>
-                        <option value="ENDED">ENDED</option>
-                        <option value="CANCELLED">CANCELLED</option>
-                      </select>
-                    </td>
+            <div style={{ overflowX:'auto' }}>
+              <table style={{ width:'100%', minWidth:'760px', borderCollapse:'collapse', fontSize:'13px' }}>
+                <thead>
+                  <tr style={{ borderBottom:'1px solid var(--border)' }}>
+                    {['Title','Start time','Attendees','Status','Actions'].map(h => (
+                      <th key={h} style={{ textAlign:'left', padding:'8px 10px', fontSize:'11px', color:'var(--text3)', fontWeight:'500', textTransform:'uppercase', letterSpacing:'0.05em' }}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {events.slice(0,6).map(ev => (
+                    <tr key={ev.id} style={{ borderBottom:'1px solid var(--border)' }}>
+                      <td style={{ padding:'10px' }}>{ev.title}</td>
+                      <td style={{ padding:'10px', color:'var(--text2)' }}>{format(new Date(ev.startTime), 'dd MMM · h:mm a')}</td>
+                      <td style={{ padding:'10px', color:'var(--text2)' }}>{ev.currentAttendees} / {ev.maxAttendees}</td>
+                      <td style={{ padding:'10px' }}>
+                        <span style={{ color: statusColor[ev.status], fontSize:'12px' }}>● {ev.status}</span>
+                      </td>
+                      <td style={{ padding:'10px' }}>
+                        <select
+                          value={ev.status}
+                          onChange={e => handleStatusChange(ev.id, e.target.value)}
+                          style={{ width:'auto', padding:'4px 8px', fontSize:'12px' }}
+                        >
+                          <option value="UPCOMING">UPCOMING</option>
+                          <option value="LIVE">LIVE</option>
+                          <option value="ENDED">ENDED</option>
+                          <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
       {/* EVENTS */}
       {tab === 'Events' && (
-        <div className="fade-in" style={{ display:'grid', gridTemplateColumns: selectedEvent ? '1fr 1fr' : '1fr', gap:'20px' }}>
+        <div className="fade-in" style={{ display:'grid', gridTemplateColumns: selectedEvent && !isTablet ? '1fr 1fr' : '1fr', gap:'20px' }}>
           <div>
             <div className="card">
               <div className="card-title">All events ({events.length})</div>
@@ -331,7 +348,7 @@ export default function AdminDashboard() {
                 )}
 
                 {eventAnalytics && (
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
+                  <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:'8px' }}>
                     <div className="stat-card"><div className="stat-label">Registered</div><div className="stat-value" style={{ fontSize:'20px' }}>{eventAnalytics.totalRegistered}</div></div>
                     <div className="stat-card"><div className="stat-label">Online now</div><div className="stat-value" style={{ fontSize:'20px' }}>{eventAnalytics.currentOnline}</div></div>
                     <div className="stat-card"><div className="stat-label">Messages</div><div className="stat-value" style={{ fontSize:'20px' }}>{eventAnalytics.totalMessages}</div></div>
@@ -368,37 +385,39 @@ export default function AdminDashboard() {
       {tab === 'Attendees' && (
         <div className="fade-in card">
           <div className="card-title">All registered users ({users.length})</div>
-          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'13px' }}>
-            <thead>
-              <tr style={{ borderBottom:'1px solid var(--border)' }}>
-                {['Name','Email','Company','Role','Joined'].map(h => (
-                  <th key={h} style={{ textAlign:'left', padding:'8px 10px', fontSize:'11px', color:'var(--text3)', fontWeight:'500', textTransform:'uppercase', letterSpacing:'0.05em' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(u => (
-                <tr key={u.id} style={{ borderBottom:'1px solid var(--border)' }}>
-                  <td style={{ padding:'10px', fontWeight:'500' }}>{u.name}</td>
-                  <td style={{ padding:'10px', color:'var(--text2)' }}>{u.email}</td>
-                  <td style={{ padding:'10px', color:'var(--text2)' }}>{u.company || '—'}</td>
-                  <td style={{ padding:'10px' }}>
-                    <span style={{ fontSize:'11px', padding:'2px 8px', borderRadius:'20px', background: u.role === 'ADMIN' ? 'rgba(108,99,255,0.15)' : 'var(--bg3)', color: u.role === 'ADMIN' ? 'var(--accent)' : 'var(--text2)' }}>
-                      {u.role}
-                    </span>
-                  </td>
-                  <td style={{ padding:'10px', color:'var(--text3)', fontSize:'12px' }}>{u.createdAt ? format(new Date(u.createdAt), 'dd MMM yyyy') : '—'}</td>
+          <div style={{ overflowX:'auto' }}>
+            <table style={{ width:'100%', minWidth:'760px', borderCollapse:'collapse', fontSize:'13px' }}>
+              <thead>
+                <tr style={{ borderBottom:'1px solid var(--border)' }}>
+                  {['Name','Email','Company','Role','Joined'].map(h => (
+                    <th key={h} style={{ textAlign:'left', padding:'8px 10px', fontSize:'11px', color:'var(--text3)', fontWeight:'500', textTransform:'uppercase', letterSpacing:'0.05em' }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map(u => (
+                  <tr key={u.id} style={{ borderBottom:'1px solid var(--border)' }}>
+                    <td style={{ padding:'10px', fontWeight:'500' }}>{u.name}</td>
+                    <td style={{ padding:'10px', color:'var(--text2)' }}>{u.email}</td>
+                    <td style={{ padding:'10px', color:'var(--text2)' }}>{u.company || '—'}</td>
+                    <td style={{ padding:'10px' }}>
+                      <span style={{ fontSize:'11px', padding:'2px 8px', borderRadius:'20px', background: u.role === 'ADMIN' ? 'rgba(108,99,255,0.15)' : 'var(--bg3)', color: u.role === 'ADMIN' ? 'var(--accent)' : 'var(--text2)' }}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td style={{ padding:'10px', color:'var(--text3)', fontSize:'12px' }}>{u.createdAt ? format(new Date(u.createdAt), 'dd MMM yyyy') : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {/* ANALYTICS */}
       {tab === 'Analytics' && (
         <div className="fade-in">
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'12px', marginBottom:'20px' }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap:'12px', marginBottom:'20px' }}>
             <div className="stat-card"><div className="stat-label">Total events</div><div className="stat-value">{platformStats?.totalEvents ?? '—'}</div></div>
             <div className="stat-card"><div className="stat-label">Live events</div><div className="stat-value" style={{ color:'var(--danger)' }}>{platformStats?.liveEvents ?? '—'}</div></div>
             <div className="stat-card"><div className="stat-label">Registrations</div><div className="stat-value">{platformStats?.totalRegistrations ?? '—'}</div></div>
@@ -415,7 +434,7 @@ export default function AdminDashboard() {
               ))}
             </div>
             {eventAnalytics && (
-              <div className="fade-in" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
+              <div className="fade-in" style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)', gap:'10px' }}>
                 <div className="stat-card"><div className="stat-label">Registered</div><div className="stat-value">{eventAnalytics.totalRegistered}</div><div className="stat-sub">of {eventAnalytics.maxCapacity} capacity</div></div>
                 <div className="stat-card"><div className="stat-label">Online now</div><div className="stat-value">{eventAnalytics.currentOnline}</div></div>
                 <div className="stat-card"><div className="stat-label">Fill rate</div><div className="stat-value">{eventAnalytics.fillRate}%</div></div>

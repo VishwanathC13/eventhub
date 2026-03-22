@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
+import { useEffect, useState } from 'react'
 
 const STATUS_MAP = {
   LIVE: { label: 'Live now', cls: 'badge-live', dot: '●' },
@@ -9,6 +10,16 @@ const STATUS_MAP = {
 }
 
 export default function EventCard({ event, onJoin }) {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= 640 : false
+  )
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 640)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const s = STATUS_MAP[event.status] || STATUS_MAP.UPCOMING
   const fillPct = Math.round((event.currentAttendees / event.maxAttendees) * 100)
   const isRegistered = event.isRegistered ?? event.registered
@@ -20,7 +31,7 @@ export default function EventCard({ event, onJoin }) {
     >
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'10px' }}>
         <div>
-          <div style={{ fontSize:'16px', fontWeight:'600', fontFamily:'var(--font-display)', marginBottom:'4px' }}>
+          <div style={{ fontSize:isMobile ? '15px' : '16px', fontWeight:'600', fontFamily:'var(--font-display)', marginBottom:'4px' }}>
             {event.title}
           </div>
           <div style={{ fontSize:'12px', color:'var(--text2)' }}>
@@ -48,7 +59,7 @@ export default function EventCard({ event, onJoin }) {
 
       <div style={{ display:'flex', gap:'8px', marginTop:'4px', flexDirection:'column' }}>
         {isRegistered ? (
-          <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+          <div style={{ display:'flex', gap:'8px', alignItems:isMobile ? 'stretch' : 'center', flexDirection:isMobile ? 'column' : 'row' }}>
             <Link
               to={`/events/${event.id}/live`}
               className={`btn ${event.status === 'LIVE' ? 'btn-success' : 'btn-ghost'}`}
@@ -57,7 +68,7 @@ export default function EventCard({ event, onJoin }) {
               {event.status === 'LIVE' ? '● Join stream →' : '↗ Enter room'}
             </Link>
             {event.status !== 'LIVE' && (
-              <span style={{ fontSize:'11px', color:'var(--text3)' }}>
+              <span style={{ fontSize:'11px', color:'var(--text3)', alignSelf: isMobile ? 'flex-start' : 'center' }}>
                 Goes live soon
               </span>
             )}

@@ -28,6 +28,10 @@
 
 html, body, #root { height: 100%; }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-body);
   background: var(--bg);
@@ -47,6 +51,11 @@ button {
   border: none;
   outline: none;
   transition: all 0.18s;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 input, select, textarea {
@@ -139,3 +148,49 @@ input::placeholder, textarea::placeholder { color: var(--text3); }
   0%,100% { opacity: 1; } 50% { opacity: 0.4; }
 }
 .pulse { animation: pulse 1.5s infinite; }
+
+@media (max-width: 1024px) {
+  .card {
+    padding: 16px;
+  }
+
+  .btn {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 13px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .card {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .card-title {
+    margin-bottom: 10px;
+  }
+}
