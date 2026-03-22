@@ -185,11 +185,6 @@ input::placeholder, textarea::placeholder { color: var(--text3); }
 }
 
 @media (max-width: 480px) {
-  .btn {
-    width: 100%;
-    justify-content: center;
-  }
-
   .card-title {
     margin-bottom: 10px;
   }

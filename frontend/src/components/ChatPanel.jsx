@@ -12,7 +12,8 @@ export default function ChatPanel({ eventId }) {
   const [connected, setConnected] = useState(false)
   const [sending, setSending] = useState(false)
   const clientRef = useRef(null)
-  const bottomRef = useRef(null)
+  const listRef = useRef(null)
+  const shouldStickToBottomRef = useRef(true)
 
   const mergeMessages = (incoming) => {
     setMessages((prev) => {
@@ -31,7 +32,7 @@ export default function ChatPanel({ eventId }) {
   const fetchHistory = async () => {
     try {
       const res = await api.get(`/events/${eventId}/messages`)
-      setMessages(res.data)
+      mergeMessages(res.data)
     } catch (err) {
       console.error('Failed to load chat history:', err)
     }
@@ -75,8 +76,24 @@ export default function ChatPanel({ eventId }) {
   }, [eventId])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const list = listRef.current
+    if (!list || !shouldStickToBottomRef.current) return
+    list.scrollTop = list.scrollHeight
   }, [messages])
+
+  useEffect(() => {
+    const list = listRef.current
+    if (!list) return
+
+    const onScroll = () => {
+      const threshold = 24
+      const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < threshold
+      shouldStickToBottomRef.current = nearBottom
+    }
+
+    list.addEventListener('scroll', onScroll)
+    return () => list.removeEventListener('scroll', onScroll)
+  }, [])
 
   const sendMessage = async () => {
     if (!input.trim() || sending) return
@@ -115,7 +132,7 @@ export default function ChatPanel({ eventId }) {
         </div>
       </div>
 
-      <div style={{ flex:1, overflowY:'auto', padding:'14px 16px', display:'flex', flexDirection:'column', gap:'12px' }}>
+      <div ref={listRef} style={{ flex:1, overflowY:'auto', padding:'14px 16px', display:'flex', flexDirection:'column', gap:'12px' }}>
         {messages.map((msg, i) => (
           <div key={msg.id || i} style={{ display:'flex', flexDirection:'column', alignItems: isMe(msg) ? 'flex-end' : 'flex-start' }}>
             {!isMe(msg) && (
@@ -140,7 +157,6 @@ export default function ChatPanel({ eventId }) {
             </div>
           </div>
         ))}
-        <div ref={bottomRef} />
       </div>
 
       <div style={{ padding:'12px 16px', borderTop:'1px solid var(--border)', display:'flex', gap:'8px' }}>
@@ -149,10 +165,10 @@ export default function ChatPanel({ eventId }) {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && sendMessage()}
           placeholder="Send a message..."
-          style={{ flex:1, fontSize:'13px', padding:'8px 12px' }}
+          style={{ flex:1, fontSize:'13px', padding:'8px 12px', height:'36px' }}
           disabled={sending}
         />
-        <button className="btn btn-primary" style={{ padding:'8px 14px', fontSize:'13px' }} onClick={sendMessage} disabled={sending || !input.trim()}>
+        <button className="btn btn-primary" style={{ padding:'0 14px', height:'36px', width:'auto', fontSize:'13px', flexShrink:0 }} onClick={sendMessage} disabled={sending || !input.trim()}>
           {sending ? 'Sending...' : 'Send'}
         </button>
       </div>
