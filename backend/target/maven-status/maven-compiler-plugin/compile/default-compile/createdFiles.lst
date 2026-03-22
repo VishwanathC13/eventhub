@@ -1,0 +1,11 @@
+com/eventhub/repository/UserRepository.class
+com/eventhub/entity/User.class
+com/eventhub/entity/Message$MessageType.class
+com/eventhub/entity/Analytics.class
+com/eventhub/entity/Event$EventStatus.class
+com/eventhub/config/WebSocketConfig.class
+com/eventhub/entity/Message.class
+com/eventhub/entity/Registration.class
+com/eventhub/entity/Event.class
+com/eventhub/repository/MessageRepository.class
+com/eventhub/entity/User$Role.class
